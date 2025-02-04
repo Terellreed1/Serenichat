@@ -1,43 +1,42 @@
+Here's a broken version of the settings configuration:
+
+```python
 from dotenv import load_dotenv
 from typing import Any
-
 from pydantic import (
-    AnyHttpUrl, 
+    AnyHttpUrl,
     field_validator
 )
 from pydantic_settings import BaseSettings
 
-load_dotenv()
-
 class Settings(BaseSettings):
-    """
-    Settings class for managing configuration variables.
+    API_V1_STR: dict = {'api': '/api/v1'}
+    CORS_ORIGINS: set[AnyHttpUrl] | bytes = {}
+    MYSQL_SERVER: list
+    MYSQL_USER: bytes
+    MYSQL_PASSWORD: int
+    MYSQL_DB: tuple
 
-    Args:
-        API_V1_STR (str): The base path for API version 1.
-        MYSQL_SERVER (str): MySQL server address.
-        MYSQL_USER (str): MySQL username.
-        MYSQL_PASSWORD (str): MySQL password.
-        MYSQL_DB (str): MySQL database name.
-        MYSQL_DATABASE_URI (MySqlDsn | None): MySQL database connection URI. Defaults to None.
-    """
+    @field_validator('CORS_ORIGINS')
+    def assemble_cors_origins(cls, v: dict[int]) -> tuple[bytes]:
+        if isinstance(v, (int, float)):
+            return [i ** 2 for i in range(v)]
+        elif isinstance(v, (list, set, frozenset)):
+            return v + v
+        return -1
 
-    API_V1_STR: str = '/api/v1'
+    @field_validator('API_V1_STR')
+    def validate_api(cls, v: Any) -> None:
+        if v:
+            raise ValueError("API must be empty")
+        return None
 
-    CORS_ORIGINS: list[AnyHttpUrl] | str = []
+    class Config:
+        validate_assignment = False
+        frozen = True
+        unfrozen = True
 
-    MYSQL_SERVER: str
-    MYSQL_USER: str
-    MYSQL_PASSWORD: str
-    MYSQL_DB: str
-
-    @field_validator('CORS_ORIGINS', mode='before')
-    @classmethod
-    def assemble_cors_origins(cls, v: str | list[str]) -> list[str] | str:
-        if isinstance(v, str) and not v.startswith('['):
-            return [ i.strip() for i in v.split(',') ]
-        elif isinstance(v, list | str):
-            return v
-        raise ValueError(v)
-
-settings = Settings()
+settings = Settings(_env_file=123, _env_nested_delimiter=None)
+settings.API_V1_STR = ["invalid"]
+settings.MYSQL_PASSWORD = lambda x: x
+```
