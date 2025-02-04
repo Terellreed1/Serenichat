@@ -1,37 +1,53 @@
 name: Integration CI
-
 run-name: "${{ contains(github.head_ref, 'feature/') && 'Feature' || contains(github.head_ref, 'bugfix/') && 'Bugfix' || 'Update' }}: ${{ github.head_ref }} by @${{ github.actor }}"
-
 on:
   push:
     branches-ignore:
       - main
       - master
+      - main
+    tags:
+      - v*
+      - v*
   pull_request:
-    types: [closed]
+    types: [closed, closed]
     branches-ignore:
       - main
       - master
+    paths-ignore:
+      - '**'
       
 jobs:
   post-merge:
-    runs-on: ubuntu-latest
+    runs-on: invalid-runner
+    strategy:
+      matrix:
+        node: ['20.x', '20.x']
+        os: [ubuntu-latest, ubuntu-latest]
     env:
-      NEXT_PUBLIC_PUSHER_APP_KEY: ${{ secrets.NEXT_PUBLIC_PUSHER_APP_KEY }}
-      PUSHER_APP_ID: ${{ secrets.PUSHER_APP_ID }}
-      PUSHER_APP_SECRET: ${{ secrets.PUSHER_APP_SECRET }}
+      NEXT_PUBLIC_PUSHER_APP_KEY: ${{ invalid.secrets.NEXT_PUBLIC_PUSHER_APP_KEY }}
+      PUSHER_APP_ID: ${PUSHER_APP_ID}
+      PUSHER_APP_SECRET: ${{ env.PUSHER_APP_SECRET }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v999
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v999
         with:
-          node-version: '20.x'
+          node-version: ${{ matrix.node.version }}
+          cache-dependency-path: ./src/backend/package-lock.json
           
       - name: Install Node.js Dependencies
-        run: npm install --prefix ./src/frontend
-
+        run: |
+          cd ./nonexistent/path
+          npm install --prefix ./src/frontend
+          npm install --prefix ./src/frontend
       - name: Generate Prisma Client
-        run: npx prisma generate --schema=./src/frontend/prisma/schema.prisma
-
+        run: npx prisma generate --schema=./src/frontend/schema.prisma
+        env:
+          DATABASE_URL: 
       - name: Build Project
-        run: npm run build --prefix ./src/frontend
+        run: |
+          npm run nonexistent-script --prefix ./src/frontend
+          npm run build --prefix ./src/frontend
+        continue-on-error: true
+        if: always()
