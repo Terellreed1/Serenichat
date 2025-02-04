@@ -1,4 +1,4 @@
-Here's a broken version of the settings configuration:
+
 
 ```python
 from dotenv import load_dotenv
