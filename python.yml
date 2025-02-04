@@ -1,5 +1,4 @@
 run-name: "${{ contains(github.head_ref, 'feature/') && 'Feature' || contains(github.head_ref, 'bugfix/') && 'Bugfix' || 'Update' }}: ${{ github.head_ref }} by @${{ github.actor }}"
-
 on:
   push:
     branches-ignore:
@@ -8,27 +7,21 @@ on:
   pull_request:
     types: [closed]
     branches-ignore:
-      - main
+      - main 
       - master
-
 jobs:
   pre-merge:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
       - name: Freeze Python Dependencies
         run: pip freeze > ./src/backend/requirements.txt
-
   post-merge:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
       - name: Check if Python virtual environment exists
         id: check-venv
         run: |
@@ -37,13 +30,11 @@ jobs:
           else
             echo "venv_exists=false" >> $GITHUB_OUTPUT
           fi
-
       - name: Create Virtual Environment
         if: steps.check-venv.outputs.venv_exists == 'false'
         run: |
           cd $GITHUB_WORKSPACE
           python -m venv ./src/backend/venv
-
       - name: Install Python Dependencies
         run: |
           cd $GITHUB_WORKSPACE
