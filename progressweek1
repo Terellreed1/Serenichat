@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SereniChat Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-blue-600 p-4">
+                <h1 class="text-white text-xl font-semibold">SereniChat Assistant</h1>
+                <p class="text-blue-100 text-sm">Interactive Chat Demo</p>
+            </div>
+
+            <div id="chat-messages" class="h-96 overflow-y-auto p-4 space-y-4"></div>
+
+            <div class="border-t p-4">
+                <form id="chat-form" class="flex gap-2">
+                    <input 
+                        type="text" 
+                        id="user-input"
+                        class="flex-1 rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Type your message..."
+                    >
+                    <button 
+                        type="submit"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        Send
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ChatBot {
+            constructor() {
+                this.responses = {
+                    "hi": ["Hello! How can I help you today?", "Hi there! What can I do for you?", "Hello! What brings you here today?"],
+                    "hello": ["Hi! How can I assist you?", "Hello! What can I help you with?", "Greetings! How may I help you?"],
+                    "how are you": ["I'm doing well, thank you! How can I help you?", "I'm great, thanks for asking! What can I do for you?"],
+                    "bye": ["Goodbye! Have a great day!", "See you later! Take care!", "Bye! Feel free to come back if you need help!"],
+                    "help": ["I'm here to help! What do you need assistance with?", "I'd be happy to help. What's on your mind?"],
+                    "default": ["I'm here to help! Feel free to ask me anything.", "How can I assist you today?", "I'm listening. What would you like to know?"]
+                };
+            }
+
+            getResponse(message) {
+                message = message.toLowerCase();
+                
+                // Check for exact matches first
+                for (let key in this.responses) {
+                    if (message.includes(key)) {
+                        const responses = this.responses[key];
+                        return responses[Math.floor(Math.random() * responses.length)];
+                    }
+                }
+                
+                // Return default response if no match
+                const defaultResponses = this.responses.default;
+                return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+            }
+        }
+
+        class ChatInterface {
+            constructor() {
+                this.chatbot = new ChatBot();
+                this.form = document.getElementById('chat-form');
+                this.input = document.getElementById('user-input');
+                this.messagesContainer = document.getElementById('chat-messages');
+
+                this.setupEventListeners();
+                // Add welcome message
+                this.addMessage("Hello! How can I help you today?", 'assistant');
+            }
+
+            setupEventListeners() {
+                this.form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleSubmit();
+                });
+            }
+
+            async handleSubmit() {
+                const message = this.input.value.trim();
+                if (!message) return;
+
+                // Add user message
+                this.addMessage(message, 'user');
+                this.input.value = '';
+
+                // Simulate typing delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Get and add bot response
+                const response = this.chatbot.getResponse(message);
+                this.addMessage(response, 'assistant');
+            }
+
+            addMessage(content, role) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `max-w-[80%] p-3 rounded-lg ${
+                    role === 'user' 
+                        ? 'bg-blue-600 text-white ml-auto' 
+                        : 'bg-gray-100 text-gray-800'
+                }`;
+                messageDiv.textContent = content;
+                this.messagesContainer.appendChild(messageDiv);
+                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            }
+        }
+
+        // Initialize chat interface
+        const chat = new ChatInterface();
+    </script>
+</body>
+</html>
